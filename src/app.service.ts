@@ -24,11 +24,12 @@ export class FirebaseService {
   }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
-    const fileUpload = this.bucket.file(`pdf_uploads/${file.originalname}`);
+    const fileUpload = this.bucket.file(`${file.originalname}`);
     const fileStream = fileUpload.createWriteStream({
       public: true,
       metadata: {
         contentType: 'application/pdf',
+        acl: ['public-read'],
       },
     });
 
