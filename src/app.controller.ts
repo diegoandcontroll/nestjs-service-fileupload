@@ -23,7 +23,7 @@ export class UploadController {
     }
   }
   @Get('/')
-  getMessage(): { message: string } {
-    return this.firebaseService.handleMessage();
+  getMessage() {
+    return JSON.stringify(this.firebaseService.handleMessage());
   }
 }
