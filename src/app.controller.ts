@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -7,11 +8,11 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FirebaseService } from './app.service';
 
-@Controller('upload')
+@Controller()
 export class UploadController {
   constructor(private readonly firebaseService: FirebaseService) {}
 
-  @Post()
+  @Post('/upload')
   @UseInterceptors(FileInterceptor('pdf'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     try {
@@ -20,5 +21,9 @@ export class UploadController {
     } catch (error) {
       throw new Error('Erro ao fazer upload do arquivo');
     }
+  }
+  @Get('/')
+  getMessage(): { message: string } {
+    return this.firebaseService.handleMessage();
   }
 }

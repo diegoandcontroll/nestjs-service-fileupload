@@ -38,4 +38,9 @@ export class FirebaseService {
     const publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${fileUpload.name}`;
     return publicUrl;
   }
+  handleMessage() {
+    return {
+      message: 'Please make a POST request to /upload to upload a file.',
+    };
+  }
 }
