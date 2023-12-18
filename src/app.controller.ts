@@ -8,22 +8,20 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FirebaseService } from './app.service';
 
-@Controller()
+@Controller('')
 export class UploadController {
   constructor(private readonly firebaseService: FirebaseService) {}
 
-  @Post('/upload')
+  @Post('upload')
   @UseInterceptors(FileInterceptor('pdf'))
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    try {
-      const url = await this.firebaseService.uploadFile(file);
-      return { url };
-    } catch (error) {
-      throw new Error('Erro ao fazer upload do arquivo');
-    }
+  async uploadPDF(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ url: string }> {
+    const publicUrl = await this.firebaseService.uploadPDF(file);
+    return { url: publicUrl };
   }
-  @Get('/')
-  getMessage() {
-    return JSON.stringify(this.firebaseService.handleMessage());
+  @Get()
+  sendMessage() {
+    return { message: 'User path /upload' };
   }
 }

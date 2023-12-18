@@ -1,47 +1,38 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
-
+import * as path from 'path';
+import { createHash } from 'crypto';
+import { IFirebaseCredentials } from './config';
+import creadentials from './config/upload.json';
 @Injectable()
 export class FirebaseService {
-  private readonly bucket;
-
-  constructor(private readonly configService: ConfigService) {
-    const serviceAccount = {
-      projectId: this.configService.get<string>('FIREBASE_PROJECT_ID'),
-      privateKey: this.configService
-        .get<string>('FIREBASE_PRIVATE_KEY')
-        .replace(/\\n/g, '\n'),
-      clientEmail: this.configService.get<string>('FIREBASE_CLIENT_EMAIL'),
-    };
-
+  private readonly storage;
+  constructor() {
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      storageBucket: this.configService.get<string>('FIREBASE_STORAGE_BUCKET'),
+      credential: admin.credential.cert(creadentials as IFirebaseCredentials),
+      storageBucket: `${process.env.BUCKET}`,
     });
 
-    this.bucket = admin.storage().bucket();
+    this.storage = admin.storage().bucket();
   }
 
-  async uploadFile(file: Express.Multer.File): Promise<string> {
-    const fileUpload = this.bucket.file(`${file.originalname}`);
-    const fileStream = fileUpload.createWriteStream({
+  async uploadPDF(pdfFile: Express.Multer.File): Promise<string> {
+    const extension = path.extname(pdfFile.originalname);
+
+    const fileId = createHash('sha1').update(crypto.randomUUID()).digest('hex');
+
+    const filename = `${fileId}${extension}`;
+    const fileRef = this.storage.file(filename);
+    await fileRef.save(pdfFile.buffer, {
       public: true,
       metadata: {
         contentType: 'application/pdf',
-        acl: ['public-read'],
       },
     });
 
-    const pdfBuffer = file.buffer;
-    fileStream.end(pdfBuffer);
+    const bucketName = this.storage.name;
+    const publicUrl = `https://storage.googleapis.com/${bucketName}/${filename}`;
 
-    const publicUrl = `https://storage.googleapis.com/${this.bucket.name}/${fileUpload.name}`;
     return publicUrl;
-  }
-  handleMessage() {
-    return {
-      message: 'Please make a POST request to /upload to upload a file.',
-    };
   }
 }
