@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import * as path from 'path';
-import { createHash } from 'crypto';
 import { IFirebaseCredentials } from './config';
 import creadentials from './config/upload.json';
 @Injectable()
@@ -18,10 +17,13 @@ export class FirebaseService {
 
   async uploadPDF(pdfFile: Express.Multer.File): Promise<string> {
     const extension = path.extname(pdfFile.originalname);
+    const currentDate = new Date();
+    const formattedDate = currentDate
+      .toISOString()
+      .replace(/[-T:.Z]/g, '')
+      .slice(0, 14);
 
-    const fileId = createHash('sha1').update(crypto.randomUUID()).digest('hex');
-
-    const filename = `${fileId}${extension}`;
+    const filename = `${formattedDate}${extension}`;
     const fileRef = this.storage.file(filename);
     await fileRef.save(pdfFile.buffer, {
       public: true,
